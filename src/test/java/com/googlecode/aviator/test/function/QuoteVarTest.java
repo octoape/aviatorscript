@@ -1,5 +1,6 @@
 package com.googlecode.aviator.test.function;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -148,5 +149,36 @@ public class QuoteVarTest {
   @Test(expected = ExpressionSyntaxErrorException.class)
   public void testInvalidPropertyChainWithEmptySegment() {
     AviatorEvaluator.execute("a..b");
+  }
+
+
+  @Test
+  public void testDottedVarWithDynamicIndex() {
+    Map<String, Object> env = new HashMap<String, Object>();
+    Map<String, Object> a = new HashMap<String, Object>();
+    a.put("list", Arrays.asList(10, 20, 30));
+    env.put("a", a);
+    env.put("i", 1);
+
+    // Dynamic index on a dotted path must be evaluated as an expression.
+    assertEquals(20, AviatorEvaluator.execute("a.list[i]", env));
+    assertEquals(30, AviatorEvaluator.execute("a.list[i + 1]", env));
+    // A literal index expression is also evaluated, not parsed as a bare literal key.
+    assertEquals(30, AviatorEvaluator.execute("a.list[0 + 2]", env));
+    // Trailing literal index still works.
+    assertEquals(10, AviatorEvaluator.execute("a.list[0]", env));
+  }
+
+
+  @Test
+  public void testDottedVarWithMultiDimensionalIndex() {
+    Map<String, Object> env = new HashMap<String, Object>();
+    Map<String, Object> a = new HashMap<String, Object>();
+    a.put("grid", Arrays.asList(Arrays.asList(1, 2), Arrays.asList(3, 4)));
+    env.put("a", a);
+    env.put("i", 1);
+
+    assertEquals(2, AviatorEvaluator.execute("a.grid[0][1]", env));
+    assertEquals(3, AviatorEvaluator.execute("a.grid[i][0]", env));
   }
 }

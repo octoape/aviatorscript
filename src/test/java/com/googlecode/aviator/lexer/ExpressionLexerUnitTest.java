@@ -454,6 +454,78 @@ public class ExpressionLexerUnitTest {
 
 
   @Test
+  public void testDottedVarWithDynamicIndexNotAbsorbed() {
+    // A dynamic index must not be swallowed into the variable lexeme; it is left to
+    // the parser's array-access handling: variable "a.b", then '[', 'i', ']'.
+    this.lexer = new ExpressionLexer(this.instance, "a.b[i]");
+    Token<?> token = this.lexer.scan();
+    assertEquals(TokenType.Variable, token.getType());
+    assertEquals("a.b", token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Char, token.getType());
+    assertEquals('[', token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Variable, token.getType());
+    assertEquals("i", token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Char, token.getType());
+    assertEquals(']', token.getValue(null));
+    assertNull(this.lexer.scan());
+  }
+
+
+  @Test
+  public void testDottedVarWithTrailingLiteralIndexNotAbsorbed() {
+    // A trailing literal index (not followed by another '.') is left to the parser too.
+    this.lexer = new ExpressionLexer(this.instance, "a.b[0]");
+    Token<?> token = this.lexer.scan();
+    assertEquals(TokenType.Variable, token.getType());
+    assertEquals("a.b", token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Char, token.getType());
+    assertEquals('[', token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Number, token.getType());
+    assertEquals(0, token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Char, token.getType());
+    assertEquals(']', token.getValue(null));
+    assertNull(this.lexer.scan());
+  }
+
+
+  @Test
+  public void testDottedVarWithMultiDimensionalIndexNotAbsorbed() {
+    // Consecutive indices are left to the parser (no mid-chain '.' between them).
+    this.lexer = new ExpressionLexer(this.instance, "a.b[0][1]");
+    Token<?> token = this.lexer.scan();
+    assertEquals(TokenType.Variable, token.getType());
+    assertEquals("a.b", token.getValue(null));
+
+    token = this.lexer.scan();
+    assertEquals(TokenType.Char, token.getType());
+    assertEquals('[', token.getValue(null));
+  }
+
+
+  @Test
+  public void testDottedVarWithMidChainLiteralIndexAbsorbed() {
+    // A literal index followed by another property segment is part of the lexeme.
+    this.lexer = new ExpressionLexer(this.instance, "a.b[0].c");
+    Token<?> token = this.lexer.scan();
+    assertEquals(TokenType.Variable, token.getType());
+    assertEquals("a.b[0].c", token.getValue(null));
+    assertNull(this.lexer.scan());
+  }
+
+
+  @Test
   public void testExpression_Logic_Join() {
     this.lexer = new ExpressionLexer(this.instance, "a || c ");
     Token<?> token = this.lexer.scan();
