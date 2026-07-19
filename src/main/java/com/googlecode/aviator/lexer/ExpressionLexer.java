@@ -434,19 +434,67 @@ public class ExpressionLexer {
     StringBuilder sb = new StringBuilder();
     boolean hasDot = false;
 
-    do {
-      if (this.peek == '.') {
-        hasDot = true;
+    // The first character is a valid Java identifier start, never a dot.
+    sb.append(this.peek);
+    nextChar();
+    while (true) {
+      if (Character.isJavaIdentifierPart(this.peek) || this.peek == '.') {
+        if (this.peek == '.') {
+          hasDot = true;
+        }
+        sb.append(this.peek);
+        nextChar();
+      } else if (hasDot && this.peek == '[' && tryAbsorbChainedIndex(sb)) {
+        // The "[digits]" text has been appended and the lexer now points at the
+        // following '.', which the next iteration consumes.
+      } else {
+        break;
       }
-      sb.append(this.peek);
-      nextChar();
-      // Only allow [] after a dot has been seen (property access syntax)
-    } while (Character.isJavaIdentifierPart(this.peek) || this.peek == '.'
-        || (hasDot && (this.peek == '[' || this.peek == ']')));
+    }
 
     String lexeme = sb.toString();
     Variable variable = new Variable(lexeme, this.lineNo, startIndex);
     return this.symbolTable.reserve(variable);
+  }
+
+
+  /**
+   * Try to absorb a mid-chain integer-literal index into the variable lexeme, e.g. the "[0]" in
+   * "foo.bars[0].name".
+   *
+   * <p>
+   * Only a non-negative integer literal index immediately followed by another property segment
+   * ('.') is absorbed, because such a chain cannot be expressed through the parser's array-access
+   * handling. Dynamic indices (foo.bars[i]), expression indices (foo.bars[i + 1]), trailing indices
+   * (foo.bars[0]) and multi-dimensional indices (foo.bars[0][1]) are left untouched so the parser
+   * resolves them via {@code getElement}, which preserves dynamic and multi-dimensional indexing.
+   *
+   * <p>
+   * On success the "[digits]" text is appended to {@code sb} and the lexer is positioned at the
+   * following '.'. On failure the lexer is restored to the original '[' and the method returns
+   * false.
+   *
+   * @param sb the variable lexeme being built, positioned at '['
+   * @return true if a chained literal index was absorbed
+   */
+  private boolean tryAbsorbChainedIndex(final StringBuilder sb) {
+    int mark = this.iterator.getIndex(); // points at '['
+    StringBuilder digits = new StringBuilder();
+    nextChar(); // skip '['
+    while (Character.isDigit(this.peek)) {
+      digits.append(this.peek);
+      nextChar();
+    }
+    if (digits.length() > 0 && this.peek == ']') {
+      nextChar(); // skip ']'
+      if (this.peek == '.') {
+        sb.append('[').append(digits).append(']');
+        return true;
+      }
+    }
+    // Not a chained literal index: restore the lexer to the original '['.
+    this.peek = this.iterator.setIndex(mark);
+    return false;
   }
 
 
