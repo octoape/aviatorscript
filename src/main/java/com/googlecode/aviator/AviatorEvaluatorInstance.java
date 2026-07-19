@@ -477,6 +477,7 @@ public final class AviatorEvaluatorInstance {
     setOption(Options.ALLOWED_CLASS_SET, Collections.emptySet());
     setOption(Options.ASSIGNABLE_ALLOWED_CLASS_SET, Collections.emptySet());
     setOption(Options.EVAL_TIMEOUT_MS, 1000L);
+    this.removeModule(this.getModuleName(IoModule.class));
   }
 
   /**
@@ -489,17 +490,7 @@ public final class AviatorEvaluatorInstance {
    */
   public Env addModule(final Class<?> moduleClazz)
       throws NoSuchMethodException, IllegalAccessException {
-    String namespace = moduleClazz.getSimpleName();
-
-    Import importAnt = moduleClazz.getAnnotation(Import.class);
-
-    if (importAnt != null) {
-      namespace = importAnt.ns();
-      if (namespace == null || namespace.isEmpty()
-          || !ExpressionParser.isJavaIdentifier(namespace)) {
-        throw new IllegalArgumentException("Invalid namespace in Import annotation: " + namespace);
-      }
-    }
+    String namespace = getModuleName(moduleClazz);
 
     Env exports = null;
     synchronized (namespace.intern()) {
@@ -511,6 +502,21 @@ public final class AviatorEvaluatorInstance {
       this.moduleCache.put(namespace, exports);
       return exports;
     }
+  }
+
+  private String getModuleName(final Class<?> moduleClazz) {
+    String namespace = moduleClazz.getSimpleName();
+
+    Import importAnt = moduleClazz.getAnnotation(Import.class);
+
+    if (importAnt != null) {
+      namespace = importAnt.ns();
+      if (namespace == null || namespace.isEmpty()
+          || !ExpressionParser.isJavaIdentifier(namespace)) {
+        throw new IllegalArgumentException("Invalid namespace in Import annotation: " + namespace);
+      }
+    }
+    return namespace;
   }
 
   /**
