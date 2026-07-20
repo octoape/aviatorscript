@@ -30,9 +30,9 @@ It compiles script to java byte code and evaluate it on the fly.
 
 # News
 
+* [5.4.4](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.4)，support dotted property access without the `#` prefix, such as `a.b.c` and `foo.bars[0].name`, refactor the lexer/parser and fix several bugs. **Security fix: the `io` module is now removed under sandbox mode; sandbox users are strongly advised to upgrade.**
 * [5.4.3](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.3)，add the `enableSandboxMode` to enable sandbox mode etc.
 * [5.4.2](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.2)，add the `getFunctionNames` method to retrieve a list of functions and set the evaluation timeout, etc.
-* [5.4.1](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.1)，Fixed recursive function can't work, fixed function can't be serialized etc.
 
 # Dependency
 

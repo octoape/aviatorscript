@@ -35,9 +35,9 @@
 
 # News
 
+* [5.4.4](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.4)，支持不带 `#` 前缀的点号属性访问，如 `a.b.c`、`foo.bars[0].name`，重构 lexer/parser 并修复若干 bug。**安全修复：沙箱模式下移除 `io` 模块，强烈建议启用沙箱模式的用户升级。**
 * [5.4.3](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.3)，增加安全沙箱一键启用方法以及修复 bug 等。
 * [5.4.2](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.2)，增加 `getFunctionNames` 方法用于获取函数列表以及设置求值超时时间等。
-* [5.4.1](https://github.com/killme2008/aviatorscript/releases/tag/aviator-5.4.1)，修复递归函数无法工作的 bug，修复函数无法序列化的 bug 等。
 
 # Dependency
 
